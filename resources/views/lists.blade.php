@@ -178,20 +178,22 @@
                                             @endphp
 
                                             @if ($nonMembers->isNotEmpty())
-                                                <form action="{{ route('lists.add-member', $list) }}" method="POST" class="flex gap-2">
+                                                <form action="{{ route('lists.add-member', $list) }}" method="POST" class="flex items-center gap-2 w-full">
                                                     @csrf
-                                                    <select 
-                                                        name="user_id" 
-                                                        required 
-                                                        class="text-xs rounded-lg border border-slate-300 py-1.5 px-2.5 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 flex-1"
-                                                    >
-                                                        <option value="" disabled selected>+ Pilih teman untuk kolaborasi...</option>
-                                                        @foreach ($nonMembers as $availableUser)
-                                                            <option value="{{ $availableUser->id }}">
-                                                                {{ $availableUser->name }} ({{ $availableUser->email }})
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
+                                                    <div class="flex-1 min-w-0">
+                                                        <select 
+                                                            name="user_id" 
+                                                            required 
+                                                            class="w-full min-w-0 text-xs rounded-lg border border-slate-300 py-1.5 px-2.5 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 truncate"
+                                                        >
+                                                            <option value="" disabled selected>+ Pilih teman...</option>
+                                                            @foreach ($nonMembers as $availableUser)
+                                                                <option value="{{ $availableUser->id }}">
+                                                                    {{ $availableUser->name }} ({{ $availableUser->email }})
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
                                                     <button 
                                                         type="submit" 
                                                         class="text-xs font-medium bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"

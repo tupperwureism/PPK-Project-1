@@ -48,16 +48,22 @@
                     </a>
 
                     @auth
-                        <nav class="hidden md:flex space-x-3">
+                        <nav class="hidden md:flex space-x-2">
                             <a href="{{ route('dashboard') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('dashboard') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
-                                Dashboard Tugas
+                                📊 Dashboard
+                            </a>
+                            <a href="{{ route('lists.index') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('lists.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                                📁 Lists (P2)
+                            </a>
+                            <a href="{{ route('tasks.index') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('tasks.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                                ✅ Tasks (P3)
                             </a>
                             <a href="{{ route('users.index') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('users.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
-                                Kelola User (P1)
+                                👤 Users (P1)
                             </a>
                             @if(auth()->user()->isAdmin())
                                 <a href="{{ route('admin.users.index') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('admin.users.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
-                                    Admin Users
+                                    🛡️ Admin Area
                                 </a>
                             @endif
                         </nav>

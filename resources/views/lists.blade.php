@@ -222,9 +222,9 @@
                                             </svg>
                                             Modul Tugas (Programmer 3)
                                         </span>
-                                        <span class="text-indigo-600 font-medium hover:underline cursor-pointer">
+                                        <a href="{{ route('tasks.index') }}" class="text-indigo-600 font-semibold hover:text-indigo-800 hover:underline">
                                             Buka Tugas &rarr;
-                                        </span>
+                                        </a>
                                     </div>
                                 </div>
                             @endforeach
@@ -282,9 +282,9 @@
 
                                     <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                                         <span class="text-slate-400">Akses: Anggota Tim</span>
-                                        <span class="text-indigo-600 font-medium hover:underline cursor-pointer">
+                                        <a href="{{ route('tasks.index') }}" class="text-indigo-600 font-semibold hover:text-indigo-800 hover:underline">
                                             Buka Tugas &rarr;
-                                        </span>
+                                        </a>
                                     </div>
                                 </div>
                             @endforeach

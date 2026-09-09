@@ -6,8 +6,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>JARA — Manajemen List & Kolaborasi</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.tailwindcss.com"></script>
+    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @endif
 </head>
 <body class="h-full text-slate-800 antialiased font-sans">
     <div class="min-h-full flex flex-col">
@@ -24,6 +26,11 @@
                             <span class="text-xs text-indigo-600 font-semibold uppercase tracking-wider block sm:inline sm:ml-1 sm:border-l sm:border-slate-300 sm:pl-2">Modul 2 • List & Kolaborasi</span>
                         </div>
                     </div>
+
+                    <nav class="hidden md:flex items-center space-x-2">
+                        <a href="{{ route('lists.index') }}" class="px-3 py-1.5 text-sm font-semibold rounded-lg bg-indigo-50 text-indigo-700">📁 Daftar List</a>
+                        <a href="{{ route('tasks.index') }}" class="px-3 py-1.5 text-sm font-medium rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-slate-100 transition">✅ Semua Tugas</a>
+                    </nav>
 
                     <div class="flex items-center space-x-4">
                         <div class="text-right hidden sm:block">

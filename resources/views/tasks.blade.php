@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Tasks | {{ config('app.name', 'JARA') }}</title>
+        <script src="https://cdn.tailwindcss.com"></script>
         @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
             @vite(['resources/css/app.css', 'resources/js/app.js'])
         @endif
@@ -15,6 +16,11 @@
                     <p class="mb-3 text-xs font-semibold uppercase tracking-[0.28em] text-[#b45439]">JARA / workspace</p>
                     <h1 class="font-serif text-4xl font-semibold tracking-tight sm:text-5xl">My tasks</h1>
                     <p class="mt-3 max-w-xl text-sm leading-6 text-[#716b61]">Rencanakan pekerjaan hari ini, lalu lihat progresnya bergerak.</p>
+                    <div class="mt-4">
+                        <a href="{{ route('lists.index') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#e7dfd2] text-[#595246] hover:bg-[#dbd0bf] transition">
+                            ← Buka Daftar List (Projects)
+                        </a>
+                    </div>
                 </div>
                 <div class="text-left sm:text-right">
                     <p class="text-4xl font-semibold text-[#b45439]">{{ $progressPercentage }}%</p>

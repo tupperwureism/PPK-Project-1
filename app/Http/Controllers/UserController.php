@@ -43,7 +43,7 @@ class UserController extends Controller
         ]);
 
         return redirect()->route('users.index')
-            ->with('success', 'User ' . $validated['name'] . ' berhasil ditambahkan!');
+            ->with('success', 'User '.$validated['name'].' berhasil ditambahkan!');
     }
 
     /**

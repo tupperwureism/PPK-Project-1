@@ -40,12 +40,12 @@ class TodoListController extends Controller
         $user = $this->resolveUser($request);
 
         $ownedLists = $user->todoLists()
-            ->with(['members'])
+            ->with(['members', 'tasks'])
             ->latest()
             ->get();
 
         $sharedLists = $user->sharedTodoLists()
-            ->with(['user', 'members'])
+            ->with(['user', 'members', 'tasks'])
             ->latest()
             ->get();
 

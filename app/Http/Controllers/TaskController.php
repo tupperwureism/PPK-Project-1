@@ -145,13 +145,6 @@ class TaskController extends Controller
         return redirect()->route('tasks.index', $redirectParams)->with('success', $message);
     }
 
-    public function listBoard(Request $request, TodoList $todoList): View
-    {
-        $request->merge(['list_id' => $todoList->id]);
-
-        return $this->index($request);
-    }
-
     public function update(Request $request, Task $task): RedirectResponse
     {
         $validated = $request->validate([

@@ -411,7 +411,7 @@
                                                         <!-- List relation tag (if on global view) -->
                                                         @if ($task->todoList && ! $currentList)
                                                             <a 
-                                                                href="{{ route('lists.show', $task->todoList) }}" 
+                                                                href="{{ \Illuminate\Support\Facades\Route::has('lists.show') ? route('lists.show', $task->todoList) : route('tasks.index', ['list_id' => $task->todoList->id]) }}" 
                                                                 class="inline-flex items-center px-2 py-0.5 rounded border border-slate-200 bg-white text-slate-600 hover:text-[#2563EB] hover:border-[#2563EB]"
                                                             >
                                                                 📁 {{ $task->todoList->name }}

@@ -166,25 +166,6 @@ class TaskTest extends TestCase
         $this->assertDatabaseCount('tasks', 0);
     }
 
-    public function test_list_board_can_be_accessed_via_lists_show(): void
-    {
-        $user = User::factory()->create();
-        $list = TodoList::factory()->create(['user_id' => $user->id, 'name' => 'Sprint 1 JARA']);
-
-        Task::create([
-            'todo_list_id' => $list->id,
-            'title' => 'Tugas Spesifik List',
-            'priority' => 'HIGH',
-            'due_date' => '2026-09-30',
-        ]);
-
-        $response = $this->get('/lists/'.$list->id);
-
-        $response->assertOk()
-            ->assertSee('Sprint 1 JARA')
-            ->assertSee('Tugas Spesifik List');
-    }
-
     public function test_task_can_be_updated_full_crud(): void
     {
         $task = Task::create([

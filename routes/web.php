@@ -60,9 +60,6 @@ Route::controller(TodoListController::class)->group(function () {
     Route::post('/lists/{todoList}/members', 'addMember')->name('lists.add-member');
 });
 
-// Route List Board / Detail (/lists/:id sesuai Target Halaman SRS Bab 4 & 8)
-Route::get('/lists/{todoList}', [TaskController::class, 'listBoard'])->name('lists.show');
-
 // Tasks (Task CRUD & Completion Toggle sesuai SRS 4 & 5)
 Route::controller(TaskController::class)->group(function () {
     Route::get('/tasks', 'index')->name('tasks.index');

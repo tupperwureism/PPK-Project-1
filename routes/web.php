@@ -56,6 +56,7 @@ Route::middleware('auth')->group(function (): void {
 Route::controller(TodoListController::class)->group(function () {
     Route::get('/lists', 'index')->name('lists.index');
     Route::post('/lists', 'store')->name('lists.store');
+    Route::get('/lists/{todoList}', 'show')->name('lists.show');
     Route::delete('/lists/{todoList}', 'destroy')->name('lists.destroy');
     Route::post('/lists/{todoList}/members', 'addMember')->name('lists.add-member');
 });

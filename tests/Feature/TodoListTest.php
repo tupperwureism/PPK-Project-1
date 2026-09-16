@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Task;
 use App\Models\TodoList;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -167,5 +168,48 @@ class TodoListTest extends TestCase
 
         $this->assertDatabaseMissing('todo_lists', ['id' => $list->id]);
         $this->assertDatabaseMissing('list_members', ['todo_list_id' => $list->id]);
+    }
+
+    /**
+     * REQ-02: Penghapusan list secara atomik menghapus tugas-tugas terkait.
+     */
+    public function test_deleting_list_atomically_removes_associated_tasks(): void
+    {
+        $owner = User::factory()->create();
+        $list = TodoList::factory()->create(['user_id' => $owner->id]);
+        $task = Task::create([
+            'todo_list_id' => $list->id,
+            'title' => 'Tugas Terkait',
+            'priority' => 'HIGH',
+            'due_date' => now()->toDateString(),
+            'is_completed' => false,
+        ]);
+
+        $this->assertDatabaseHas('tasks', ['id' => $task->id]);
+
+        $this->actingAs($owner)->delete(route('lists.destroy', $list));
+
+        $this->assertDatabaseMissing('todo_lists', ['id' => $list->id]);
+        $this->assertDatabaseMissing('tasks', ['id' => $task->id]);
+    }
+
+    /**
+     * REQ-02 / REQ-03: Akses halaman detail list (/lists/{id}) untuk pemilik dan anggota.
+     */
+    public function test_owner_and_member_can_access_list_detail_page(): void
+    {
+        $owner = User::factory()->create();
+        $member = User::factory()->create();
+        $stranger = User::factory()->create();
+
+        $list = TodoList::factory()->create([
+            'user_id' => $owner->id,
+            'name' => 'Detail List Workspace',
+        ]);
+        $list->members()->attach($member->id);
+
+        $this->actingAs($owner)->get(route('lists.show', $list))->assertOk();
+        $this->actingAs($member)->get(route('lists.show', $list))->assertOk();
+        $this->actingAs($stranger)->get(route('lists.show', $list))->assertForbidden();
     }
 }

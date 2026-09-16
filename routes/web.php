@@ -60,10 +60,14 @@ Route::controller(TodoListController::class)->group(function () {
     Route::post('/lists/{todoList}/members', 'addMember')->name('lists.add-member');
 });
 
-// Tasks (dari branch main)
+// Route List Board / Detail (/lists/:id sesuai Target Halaman SRS Bab 4 & 8)
+Route::get('/lists/{todoList}', [TaskController::class, 'listBoard'])->name('lists.show');
+
+// Tasks (Task CRUD & Completion Toggle sesuai SRS 4 & 5)
 Route::controller(TaskController::class)->group(function () {
     Route::get('/tasks', 'index')->name('tasks.index');
     Route::post('/tasks', 'store')->name('tasks.store');
+    Route::put('/tasks/{task}', 'update')->name('tasks.update');
     Route::patch('/tasks/{task}/toggle', 'toggle')->name('tasks.toggle');
     Route::delete('/tasks/{task}', 'destroy')->name('tasks.destroy');
 });

@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TodoListController extends Controller
 {
@@ -128,7 +129,7 @@ class TodoListController extends Controller
     }
 
     /**
-     * Remove the specified todo list from storage.
+     * Remove the specified todo list from storage (Atomic DB Transaction).
      */
     public function destroy(Request $request, TodoList $todoList): RedirectResponse
     {
@@ -138,7 +139,9 @@ class TodoListController extends Controller
             abort(403, 'Anda tidak memiliki hak untuk menghapus list ini.');
         }
 
-        $todoList->delete();
+        DB::transaction(function () use ($todoList): void {
+            $todoList->delete();
+        });
 
         return redirect()->route('lists.index')->with('success', 'Daftar tugas berhasil dihapus.');
     }
@@ -154,15 +157,32 @@ class TodoListController extends Controller
             abort(403, 'Hanya pemilik list yang dapat menambahkan anggota.');
         }
 
-        $validated = $request->validate([
-            'user_id' => ['required', 'exists:users,id', 'different:'.$user->id],
-        ], [
-            'user_id.required' => 'Pilih teman/pengguna yang ingin ditambahkan.',
-            'user_id.exists' => 'Pengguna tidak ditemukan dalam sistem.',
-            'user_id.different' => 'Anda tidak dapat menambahkan diri sendiri sebagai anggota kolaborasi.',
-        ]);
+        if ($request->filled('email')) {
+            $validated = $request->validate([
+                'email' => ['required', 'email', 'exists:users,email'],
+            ], [
+                'email.required' => 'Email pengguna wajib diisi.',
+                'email.email' => 'Format email tidak valid.',
+                'email.exists' => 'Pengguna dengan email tersebut tidak ditemukan.',
+            ]);
 
-        $todoList->members()->syncWithoutDetaching([$validated['user_id']]);
+            $targetUser = User::where('email', $validated['email'])->firstOrFail();
+        } else {
+            $validated = $request->validate([
+                'user_id' => ['required', 'exists:users,id'],
+            ], [
+                'user_id.required' => 'Pilih teman/pengguna yang ingin ditambahkan.',
+                'user_id.exists' => 'Pengguna tidak ditemukan dalam sistem.',
+            ]);
+
+            $targetUser = User::findOrFail($validated['user_id']);
+        }
+
+        if ($targetUser->id === $user->id) {
+            return back()->with('error', 'Anda tidak dapat menambahkan diri sendiri sebagai anggota kolaborasi.');
+        }
+
+        $todoList->members()->syncWithoutDetaching([$targetUser->id]);
 
         return redirect()->route('lists.index')->with('success', 'Anggota kolaborasi berhasil ditambahkan ke list tugas.');
     }

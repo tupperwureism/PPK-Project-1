@@ -74,4 +74,114 @@ class AuthTest extends TestCase
         $this->assertGuest();
         $response->assertRedirect(route('login'));
     }
+
+    /**
+     * Security: Login kebal terhadap SQL Injection payload klasik (Auth Bypass).
+     */
+    public function test_login_is_resilient_against_classic_sql_injection_payloads(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'email' => 'admin@jara.app',
+            'password' => 'secret123',
+        ]);
+
+        $payloads = [
+            "' OR '1'='1",
+            "' OR 1=1 --",
+            "admin' --",
+            "admin' #",
+            "' OR ''='",
+            "admin'/*",
+        ];
+
+        foreach ($payloads as $payload) {
+            $response = $this->post('/login', [
+                'email' => $payload,
+                'password' => 'anypassword',
+            ]);
+
+            $this->assertGuest();
+            $response->assertStatus(302);
+            $response->assertSessionHasErrors('email');
+        }
+    }
+
+    /**
+     * Security: Login kebal terhadap SQL Injection berbentuk sintaks email valid.
+     */
+    public function test_login_is_resilient_against_email_formatted_sql_injection(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'email' => 'admin@jara.app',
+            'password' => 'secret123',
+        ]);
+
+        $emailPayloads = [
+            "'or'1'='1'@jara.app",
+            "admin'--@jara.app",
+            "admin'/*@jara.app",
+        ];
+
+        foreach ($emailPayloads as $payload) {
+            $response = $this->post('/login', [
+                'email' => $payload,
+                'password' => 'wrongpass',
+            ]);
+
+            $this->assertGuest();
+            $response->assertStatus(302);
+            $response->assertSessionHasErrors('email');
+        }
+    }
+
+    /**
+     * Security: Login kebal terhadap SQL Injection pada kolom password.
+     */
+    public function test_login_is_resilient_against_password_field_sql_injection(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'user@jara.app',
+            'password' => 'realpassword',
+        ]);
+
+        $passwordPayloads = [
+            "' OR '1'='1",
+            "' OR 1=1 --",
+            "'; DROP TABLE users; --",
+        ];
+
+        foreach ($passwordPayloads as $payload) {
+            $response = $this->post('/login', [
+                'email' => $user->email,
+                'password' => $payload,
+            ]);
+
+            $this->assertGuest();
+            $response->assertStatus(302);
+            $response->assertSessionHasErrors('email');
+        }
+
+        $this->assertDatabaseHas('users', ['id' => $user->id]);
+    }
+
+    /**
+     * Security: Login kebal terhadap SQL Injection bertingkat (Stacked Queries / Drop Table).
+     */
+    public function test_login_is_resilient_against_destructive_stacked_queries(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'email' => 'admin@jara.app',
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => "admin@jara.app'; DROP TABLE users; --",
+            'password' => 'dummy',
+        ]);
+
+        $this->assertGuest();
+        $this->assertDatabaseHas('users', ['id' => $admin->id]);
+    }
 }

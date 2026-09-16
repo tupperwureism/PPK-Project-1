@@ -10,11 +10,27 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['user_id', 'name'])]
+#[Fillable(['user_id', 'name', 'description'])]
 class TodoList extends Model
 {
     /** @use HasFactory<TodoListFactory> */
     use HasFactory;
+
+    /**
+     * Accessor for title to support SRS Dummy Data Contract.
+     */
+    public function getTitleAttribute(): string
+    {
+        return $this->name ?? '';
+    }
+
+    /**
+     * Mutator for title to support SRS Dummy Data Contract.
+     */
+    public function setTitleAttribute(?string $value): void
+    {
+        $this->attributes['name'] = $value ?? '';
+    }
 
     /**
      * Get the owner of the todo list.

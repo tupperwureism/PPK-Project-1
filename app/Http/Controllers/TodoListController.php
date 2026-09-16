@@ -79,6 +79,55 @@ class TodoListController extends Controller
     }
 
     /**
+     * Display the specified todo list board with progress tracking and task list.
+     */
+    public function show(Request $request, TodoList $todoList): View
+    {
+        $user = $this->resolveUser($request);
+
+        // Otorisasi: Pemilik atau Anggota Kolaborasi
+        $isOwner = $todoList->user_id === $user->id;
+        $isMember = $todoList->members()->where('users.id', $user->id)->exists();
+
+        if (! $isOwner && ! $isMember) {
+            abort(403, 'Anda tidak memiliki hak akses ke daftar tugas ini.');
+        }
+
+        // Eager load relasi
+        $todoList->load([
+            'user',
+            'members',
+            'tasks' => function ($query): void {
+                $query->orderBy('is_completed')->orderBy('due_date')->latest('id');
+            },
+        ]);
+
+        // Progress Calculation Engine (Developer 3)
+        $totalTasks = $todoList->tasks->count();
+        $completedTasks = $todoList->tasks->where('is_completed', true)->count();
+        $progressPercentage = $totalTasks > 0
+            ? (int) round(($completedTasks / $totalTasks) * 100)
+            : 0;
+
+        $availableUsers = User::query()
+            ->where('id', '!=', $user->id)
+            ->where('id', '!=', $todoList->user_id)
+            ->whereNotIn('id', $todoList->members->pluck('id'))
+            ->orderBy('name')
+            ->get();
+
+        return view('lists.show', compact(
+            'user',
+            'todoList',
+            'isOwner',
+            'totalTasks',
+            'completedTasks',
+            'progressPercentage',
+            'availableUsers'
+        ));
+    }
+
+    /**
      * Remove the specified todo list from storage.
      */
     public function destroy(Request $request, TodoList $todoList): RedirectResponse

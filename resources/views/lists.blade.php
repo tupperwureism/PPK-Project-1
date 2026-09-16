@@ -222,8 +222,8 @@
                                             </svg>
                                             {{ $list->tasks->count() }} Tugas
                                         </span>
-                                        <a href="{{ route('tasks.index', ['list_id' => $list->id]) }}" class="text-indigo-600 font-semibold hover:text-indigo-800 hover:underline">
-                                            Buka Tugas &rarr;
+                                        <a href="{{ route('lists.show', $list) }}" class="text-[#2563EB] font-semibold hover:text-blue-800 hover:underline">
+                                            Buka Board &rarr;
                                         </a>
                                     </div>
                                 </div>
@@ -282,8 +282,8 @@
 
                                     <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                                         <span class="text-slate-500 font-medium">{{ $list->tasks->count() }} Tugas</span>
-                                        <a href="{{ route('tasks.index', ['list_id' => $list->id]) }}" class="text-indigo-600 font-semibold hover:text-indigo-800 hover:underline">
-                                            Buka Tugas &rarr;
+                                        <a href="{{ route('lists.show', $list) }}" class="text-[#2563EB] font-semibold hover:text-blue-800 hover:underline">
+                                            Buka Board &rarr;
                                         </a>
                                     </div>
                                 </div>

@@ -142,6 +142,10 @@ class TaskController extends Controller
             ? "Tugas '{$task->title}' berhasil ditandai selesai!"
             : "Tugas '{$task->title}' dikembalikan ke status belum selesai.";
 
+        if ($request->header('referer')) {
+            return redirect()->back()->with('success', $message);
+        }
+
         return redirect()->route('tasks.index', $redirectParams)->with('success', $message);
     }
 

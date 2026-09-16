@@ -2,65 +2,54 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Task;
+use App\Models\TodoList;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
     /**
-     * Show the user dashboard with mock Todo List data.
+     * Show the user dashboard with real Todo List and Task data from database.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
+        $user = $request->user();
+
+        // Ambil ID semua list milik user atau list yang dibagikan ke user
+        $accessibleListIds = TodoList::query()
+            ->where('user_id', $user->id)
+            ->orWhereHas('members', function ($query) use ($user): void {
+                $query->where('users.id', $user->id);
+            })
+            ->pluck('id');
+
+        $tasksQuery = Task::with('todoList')
+            ->where(function ($query) use ($user, $accessibleListIds): void {
+                $query->whereIn('todo_list_id', $accessibleListIds)
+                    ->orWhere('created_by', $user->id);
+            });
+
+        // Fallback untuk development lokal jika list spesifik masih kosong
+        if ($tasksQuery->count() === 0 && app()->environment('local', 'testing')) {
+            $tasksQuery = Task::with('todoList');
+        }
+
+        $allTasks = (clone $tasksQuery)
+            ->orderBy('is_completed')
+            ->orderBy('due_date')
+            ->latest()
+            ->get();
+
         $stats = [
-            'total' => 12,
-            'completed' => 7,
-            'in_progress' => 4,
-            'pending' => 1,
+            'total' => $allTasks->count(),
+            'completed' => $allTasks->where('is_completed', true)->count(),
+            'in_progress' => $allTasks->where('is_completed', false)->where('due_date', '>=', now()->toDateString())->count(),
+            'pending' => $allTasks->where('is_completed', false)->count(),
         ];
 
-        $todos = [
-            [
-                'id' => 1,
-                'title' => 'Analisis Kebutuhan Modul Auth & RBAC SRS JARA',
-                'category' => 'PPK Project',
-                'priority' => 'Tinggi',
-                'status' => 'Selesai',
-                'due_date' => '2026-09-10',
-            ],
-            [
-                'id' => 2,
-                'title' => 'Implementasi CRUD Manajemen Pengguna Admin',
-                'category' => 'Backend Core',
-                'priority' => 'Tinggi',
-                'status' => 'Selesai',
-                'due_date' => '2026-09-11',
-            ],
-            [
-                'id' => 3,
-                'title' => 'Perancangan Skema Database Tugas & Relasi Cascading',
-                'category' => 'Database',
-                'priority' => 'Sedang',
-                'status' => 'Dalam Proses',
-                'due_date' => '2026-09-14',
-            ],
-            [
-                'id' => 4,
-                'title' => 'Desain Wireframe Modul Kolaborasi Tim',
-                'category' => 'UI/UX Design',
-                'priority' => 'Sedang',
-                'status' => 'Dalam Proses',
-                'due_date' => '2026-09-16',
-            ],
-            [
-                'id' => 5,
-                'title' => 'Integrasi Notifikasi Realtime & Reminder Deadline',
-                'category' => 'Frontend',
-                'priority' => 'Rendah',
-                'status' => 'Tertunda',
-                'due_date' => '2026-09-20',
-            ],
-        ];
+        $todos = $allTasks;
 
-        return view('dashboard', compact('stats', 'todos'));
+        return view('dashboard', compact('stats', 'todos', 'user'));
     }
 }

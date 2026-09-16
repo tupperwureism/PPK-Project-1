@@ -27,18 +27,15 @@
         </div>
     </div>
 
-    <!-- Notice Banner for Mock/Dummy Data -->
-    <div class="bg-amber-50 border border-amber-200/80 rounded-2xl p-4 text-amber-900 flex items-start space-x-3 text-sm">
-        <svg class="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <div class="flex-1">
-            <span class="font-semibold text-amber-950">Catatan Modul (Dummy Data Aktif):</span>
-            <p class="text-xs text-amber-800 mt-0.5">
-                Modul autentikasi dan RBAC sudah aktif. Komponen Todo List, Manajemen Tugas, dan Kolaborasi Tim di bawah ini menggunakan data simulasi statis (*placeholder*) sesuai spesifikasi SRS sembari menunggu migrasi tabel relasi tugas pada iterasi berikutnya.
-            </p>
+    <!-- Feedback Alerts -->
+    @if(session('success'))
+        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-emerald-900 flex items-center space-x-3 text-sm">
+            <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <p class="text-xs font-semibold text-emerald-800">{{ session('success') }}</p>
         </div>
-    </div>
+    @endif
 
     <!-- Statistics Cards Grid -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -95,20 +92,26 @@
         </div>
     </div>
 
-    <!-- Mock Todo List Section -->
+    <!-- Live Todo List Section -->
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div class="px-6 py-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-                <h2 class="text-lg font-bold text-slate-900 tracking-tight">Daftar Tugas Anda</h2>
-                <p class="text-xs text-slate-500 mt-0.5">Mocking list tugas JARA Todo List</p>
+                <h2 class="text-lg font-bold text-slate-900 tracking-tight">Daftar Tugas Terkini</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Tugas aktif tersambung langsung ke database</p>
             </div>
-            <button type="button" onclick="alert('Fitur tambah tugas akan terhubung dengan database pada iterasi modul Tugas.')"
-                class="inline-flex items-center px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-sm transition">
-                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Buat Tugas Baru
-            </button>
+            <div class="flex items-center space-x-2">
+                <a href="{{ route('lists.index') }}"
+                    class="inline-flex items-center px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+                    📁 Buka Daftar List
+                </a>
+                <a href="{{ route('tasks.index') }}"
+                    class="inline-flex items-center px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-sm transition">
+                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    + Buat Tugas Baru
+                </a>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -116,7 +119,7 @@
                 <thead>
                     <tr class="bg-slate-50/75 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                         <th class="py-3.5 px-6">Tugas</th>
-                        <th class="py-3.5 px-6">Kategori</th>
+                        <th class="py-3.5 px-6">Kategori / List</th>
                         <th class="py-3.5 px-6">Prioritas</th>
                         <th class="py-3.5 px-6">Status</th>
                         <th class="py-3.5 px-6">Tenggat Waktu</th>
@@ -124,29 +127,37 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200/70 text-sm">
-                    @foreach($todos as $item)
+                    @forelse($todos as $item)
                         <tr class="hover:bg-slate-50/50 transition">
                             <td class="py-4 px-6 font-medium text-slate-900">
                                 <div class="flex items-center space-x-2.5">
-                                    <input type="checkbox" {{ $item['status'] === 'Selesai' ? 'checked' : '' }}
-                                        onclick="alert('Status tugas akan tersimpan secara otomatis setelah modul Tugas tersambung ke database.')"
-                                        class="w-4 h-4 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer">
-                                    <span class="{{ $item['status'] === 'Selesai' ? 'line-through text-slate-400' : '' }}">
-                                        {{ $item['title'] }}
+                                    <form action="{{ route('tasks.toggle', $item) }}" method="POST" class="inline m-0">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="cursor-pointer flex items-center p-0 bg-transparent border-0" title="Klik untuk mengubah status tugas">
+                                            <input type="checkbox" {{ $item->is_completed ? 'checked' : '' }}
+                                                class="w-4 h-4 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer pointer-events-none">
+                                        </button>
+                                    </form>
+                                    <span class="{{ $item->is_completed ? 'line-through text-slate-400' : 'text-slate-800' }}">
+                                        {{ $item->title }}
                                     </span>
                                 </div>
                             </td>
                             <td class="py-4 px-6 text-xs text-slate-600">
                                 <span class="bg-slate-100 text-slate-700 px-2 py-1 rounded-md font-medium">
-                                    {{ $item['category'] }}
+                                    {{ $item->group ?: ($item->todoList ? $item->todoList->name : 'General') }}
                                 </span>
                             </td>
                             <td class="py-4 px-6">
-                                @if($item['priority'] === 'Tinggi')
+                                @php
+                                    $p = strtoupper($item->priority);
+                                @endphp
+                                @if($p === 'HIGH' || $p === 'TINGGI')
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 ring-1 ring-rose-200">
                                         Tinggi
                                     </span>
-                                @elseif($item['priority'] === 'Sedang')
+                                @elseif($p === 'MEDIUM' || $p === 'SEDANG')
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 ring-1 ring-amber-200">
                                         Sedang
                                     </span>
@@ -157,31 +168,33 @@
                                 @endif
                             </td>
                             <td class="py-4 px-6">
-                                @if($item['status'] === 'Selesai')
+                                @if($item->is_completed)
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
                                         ● Selesai
                                     </span>
-                                @elseif($item['status'] === 'Dalam Proses')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 ring-1 ring-blue-200">
-                                        ● Dalam Proses
-                                    </span>
                                 @else
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 ring-1 ring-amber-200">
-                                        ● Tertunda
+                                        ● Belum Selesai
                                     </span>
                                 @endif
                             </td>
                             <td class="py-4 px-6 text-xs text-slate-500 font-mono">
-                                {{ date('d M Y', strtotime($item['due_date'])) }}
+                                {{ $item->due_date ? \Carbon\Carbon::parse($item->due_date)->translatedFormat('d M Y') : '-' }}
                             </td>
                             <td class="py-4 px-6 text-right">
-                                <button type="button" onclick="alert('Fitur aksi tugas akan dihubungkan pada iterasi modul manajemen tugas.')"
+                                <a href="{{ route('tasks.index', ['list_id' => $item->todo_list_id]) }}"
                                     class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
-                                    Detail
-                                </button>
+                                    Buka Tugas &rarr;
+                                </a>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="6" class="py-8 px-6 text-center text-slate-400 text-xs">
+                                Belum ada tugas di dalam sistem. Klik tombol <strong>+ Buat Tugas Baru</strong> untuk menambahkan tugas pertama Anda.
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>

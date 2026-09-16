@@ -43,12 +43,23 @@ composer install
 cp .env.example .env
 php artisan key:generate
 
-# 4. Jalankan migrasi database
-php artisan migrate
+# 4. Jalankan migrasi & seeder database
+php artisan migrate --seed
 
 # 5. Jalankan server lokal
 php artisan serve
 ```
+
+## Akun Demo & Pengujian
+
+Setelah menjalankan `php artisan migrate --seed`, Anda dapat menggunakan akun bawaan berikut untuk login dan menguji aplikasi:
+
+| Peran (Role) | Nama Pengguna | Email | Password | Hak Akses |
+| :--- | :--- | :--- | :--- | :--- |
+| **Administrator** | Admin JARA | `admin@jara.test` | `password` | Mengelola akun pengguna (melihat, menambah, dan menghapus user) |
+| **User (Owner)** | User JARA Satu | `user1@jara.test` | `password` | Membuat daftar tugas, kelola tugas, dan undang anggota |
+| **User (Member)** | User JARA Dua | `user2@jara.test` | `password` | Kolaborasi mengerjakan tugas pada daftar yang dibagikan |
+| **User (Member)** | User JARA Tiga | `user3@jara.test` | `password` | Kolaborasi mengerjakan tugas pada daftar yang dibagikan |
 
 ## Struktur Folder
 

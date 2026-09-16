@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['todo_list_id', 'title', 'priority', 'due_date', 'is_completed'])]
+#[Fillable(['todo_list_id', 'title', 'group', 'priority', 'due_date', 'is_completed', 'created_by'])]
 class Task extends Model
 {
     /**
@@ -30,5 +30,15 @@ class Task extends Model
     public function todoList(): BelongsTo
     {
         return $this->belongsTo(TodoList::class);
+    }
+
+    /**
+     * Get the user who created this task.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

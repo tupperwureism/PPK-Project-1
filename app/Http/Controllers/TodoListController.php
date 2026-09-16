@@ -59,27 +59,52 @@ class TodoListController extends Controller
     }
 
     /**
-     * Display the specified todo list detail page.
+     * Display the specified todo list board with progress tracking and task list.
      */
     public function show(Request $request, TodoList $todoList): View
     {
         $user = $this->resolveUser($request);
 
+        // Otorisasi: Pemilik atau Anggota Kolaborasi
         $isOwner = $todoList->user_id === $user->id;
         $isMember = $todoList->members()->where('users.id', $user->id)->exists();
 
         if (! $isOwner && ! $isMember) {
-            abort(403, 'Anda tidak memiliki akses ke list tugas ini.');
+            abort(403, 'Anda tidak memiliki hak akses ke daftar tugas ini.');
         }
 
-        $todoList->load(['user', 'members', 'tasks']);
+        // Eager load relasi
+        $todoList->load([
+            'user',
+            'members',
+            'tasks' => function ($query): void {
+                $query->orderBy('is_completed')->orderBy('due_date')->latest('id');
+            },
+        ]);
+
+        // Progress Calculation Engine (Developer 3)
+        $totalTasks = $todoList->tasks->count();
+        $completedTasks = $todoList->tasks->where('is_completed', true)->count();
+        $progressPercentage = $totalTasks > 0
+            ? (int) round(($completedTasks / $totalTasks) * 100)
+            : 0;
 
         $availableUsers = User::query()
             ->where('id', '!=', $user->id)
+            ->where('id', '!=', $todoList->user_id)
+            ->whereNotIn('id', $todoList->members->pluck('id'))
             ->orderBy('name')
             ->get();
 
-        return view('lists.show', compact('user', 'todoList', 'availableUsers', 'isOwner'));
+        return view('lists.show', compact(
+            'user',
+            'todoList',
+            'isOwner',
+            'totalTasks',
+            'completedTasks',
+            'progressPercentage',
+            'availableUsers'
+        ));
     }
 
     /**
@@ -142,31 +167,36 @@ class TodoListController extends Controller
             abort(403, 'Hanya pemilik list yang dapat menambahkan anggota.');
         }
 
-        $validated = $request->validate([
-            'user_id' => ['nullable', 'exists:users,id', 'different:'.$user->id],
-            'email' => ['nullable', 'email', 'exists:users,email'],
-        ], [
-            'user_id.exists' => 'Pengguna tidak ditemukan dalam sistem.',
-            'user_id.different' => 'Anda tidak dapat menambahkan diri sendiri sebagai anggota kolaborasi.',
-            'email.exists' => 'Pengguna dengan email tersebut tidak ditemukan.',
-        ]);
+        if ($request->filled('email')) {
+            $validated = $request->validate([
+                'email' => ['required', 'email', 'exists:users,email'],
+            ], [
+                'email.required' => 'Email pengguna wajib diisi.',
+                'email.email' => 'Format email tidak valid.',
+                'email.exists' => 'Pengguna dengan email tersebut tidak ditemukan.',
+            ]);
 
-        $memberId = $validated['user_id'] ?? null;
-        if (! $memberId && ! empty($validated['email'])) {
-            $memberUser = User::where('email', $validated['email'])->first();
-            if ($memberUser) {
-                if ($memberUser->id === $user->id) {
-                    return redirect()->back(fallback: route('lists.index'))->withErrors(['email' => 'Anda tidak dapat menambahkan diri sendiri sebagai anggota kolaborasi.']);
-                }
-                $memberId = $memberUser->id;
+            $targetUser = User::where('email', $validated['email'])->first();
+            if (! $targetUser) {
+                return redirect()->back(fallback: route('lists.index'))->withErrors(['email' => 'Pengguna dengan email tersebut tidak ditemukan.']);
             }
+            $targetUserId = $targetUser->id;
+        } else {
+            $validated = $request->validate([
+                'user_id' => ['required', 'exists:users,id'],
+            ], [
+                'user_id.required' => 'Pilih teman/pengguna yang ingin ditambahkan.',
+                'user_id.exists' => 'Pengguna tidak ditemukan dalam sistem.',
+            ]);
+
+            $targetUserId = (int) $validated['user_id'];
         }
 
-        if (! $memberId) {
-            return redirect()->back(fallback: route('lists.index'))->withErrors(['user_id' => 'Pilih pengguna atau masukkan email yang valid.']);
+        if ($targetUserId === $user->id) {
+            return redirect()->back(fallback: route('lists.index'))->withErrors(['user_id' => 'Anda tidak dapat menambahkan diri sendiri sebagai anggota kolaborasi.']);
         }
 
-        $todoList->members()->syncWithoutDetaching([$memberId]);
+        $todoList->members()->syncWithoutDetaching([$targetUserId]);
 
         return redirect()->back(fallback: route('lists.index'))->with('success', 'Anggota kolaborasi berhasil ditambahkan ke list tugas.');
     }

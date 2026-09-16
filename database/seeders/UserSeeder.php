@@ -8,46 +8,37 @@ use Illuminate\Database\Seeder;
 class UserSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Run the database seeds sesuai Dummy Data Contract (Section 11 Blueprint).
      */
     public function run(): void
     {
-        // 1 Default Admin
+        // 1. Admin (usr-1)
         User::firstOrCreate(
-            ['email' => 'admin@jara.test'],
+            ['email' => 'admin@jara.app'],
             [
-                'name' => 'Admin JARA',
+                'name' => 'admin1',
                 'password' => 'password',
                 'role' => 'admin',
                 'is_admin' => true,
             ]
         );
 
-        // 2-3 Dummy Regular Users for Testing
+        // 2. User / Owner (usr-2)
         User::firstOrCreate(
-            ['email' => 'user1@jara.test'],
+            ['email' => 'budi@jara.app'],
             [
-                'name' => 'User JARA Satu',
+                'name' => 'budi_dev',
                 'password' => 'password',
                 'role' => 'user',
                 'is_admin' => false,
             ]
         );
 
+        // 3. User / Member (usr-3)
         User::firstOrCreate(
-            ['email' => 'user2@jara.test'],
+            ['email' => 'siti@jara.app'],
             [
-                'name' => 'User JARA Dua',
-                'password' => 'password',
-                'role' => 'user',
-                'is_admin' => false,
-            ]
-        );
-
-        User::firstOrCreate(
-            ['email' => 'user3@jara.test'],
-            [
-                'name' => 'User JARA Tiga',
+                'name' => 'siti_qa',
                 'password' => 'password',
                 'role' => 'user',
                 'is_admin' => false,

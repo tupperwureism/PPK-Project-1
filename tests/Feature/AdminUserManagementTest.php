@@ -37,6 +37,8 @@ class AdminUserManagementTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Budi Sudarsono');
         $response->assertDontSee('Siti Nurhaliza');
+        $response->assertSee('addUserModal');
+        $response->assertSee('deleteUserModal');
     }
 
     public function test_admin_can_create_new_user(): void
